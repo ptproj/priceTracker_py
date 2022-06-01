@@ -1,28 +1,20 @@
-# This is a sample Python script.
-
-# Press Shift+F10 to execute it or replace it with your code.
-# Press Double Shift to search everywhere for classes, files, tool windows, actions, and settings.
-
-
-def print_hi(name):
-    # Use a breakpoint in the code line below to debug your script.
-    print(f'Hi, {name}')  # Press Ctrl+F8 to toggle the breakpoint.
-
-# This is a sample Python script.
-
-# Press Shift+F10 to execute it or replace it with your code.
-# Press Double Shift to search everywhere for classes, files, tool windows, actions, and settings.
 import bs4
 import requests
 # from googletrans import Translator
-
+# Translator1= Translator()
 # from google_trans_new import google_translator
 
-#translator = google_translator()
 
-# translate_text1 = translator.translate("חמוד")
-# print(translate_text1)
+# translator = google_translator()
 
+#import pyodbc
+import ast
+import logging
+import argparse
+
+# from models.use_use import USECalculator
+# from models.use_elmo import ELMoCalculator
+# from models.use_bert import BERTCalculator
 
 
 
@@ -34,32 +26,55 @@ from urllib.parse import urlparse, parse_qs
 import json
 
 from flask import Flask
-import pyodbc
+#import pyodbc
 import ast
 
 # import matplotlib.pyplot as plt
 # import matplotlib.image as mpimg
 
-
-# img = mpimg.imread('your_image.png')
-# imgplot = plt.imshow(img)
-# plt.show()
-
 hostName = "127.0.0.1"
 hostPort = 9007
-# url="https://www.terminalx.com/men"
-# res = requests.get(url)
-# soup = bs4.BeautifulSoup(res.content, features="html.parser")
-# price = soup.find(class_='tx-link_29YD')
 
 class MyServer(BaseHTTPRequestHandler):
     app = Flask(__name__)
 
+    def startModel(model1, method, verbose, sentences):
+        print("in startModel")
+        #
+        # models = {
+        #     # "use": USECalculator,
+        #     #  "elmo": ELMoCalculator,
+        #     "bert": BERTCalculator,
+        # }
+        #
+        # # if config.model not in models:
+        # if model1 not in models:
+        #     logging.error(f"The model you chosen is not supported yet.")
+        #     return
+        #
+        # if verbose:
+        #     logging.info(f"Loading the corpus...")
+        #
+        # with open("corpus.txt", "r", encoding="utf-8") as corpus:
+        #     sentences = [sentence.replace("\n", "") for sentence in corpus.readlines()]
+        #     model = models[model1](method, verbose, sentences)
+        #
+        #     if verbose:
+        #         logging.info(
+        #             f'You chose the "{model1.upper()}" as a model.\n'
+        #             f'You chose the "{method.upper()}" as a method.'
+        #         )
+        #
+        #     similarity = model.calculate()
+        #     print(similarity)
+        #     return similarity
+        #     if verbose:
+        #         logging.info(f"Terminating the program...")
+
     def getprice(self,url):
         print("here:by faigy b"+url)
 
-
-        res = requests.get(url)
+        res = requests.get(url,verify=False)
         soup = bs4.BeautifulSoup(res.content, features="html.parser")
         price = soup.find(class_='prices_3bzP').get_text().replace("₪", "")
         if price.__contains__('מ'):
@@ -81,7 +96,7 @@ class MyServer(BaseHTTPRequestHandler):
     #     do something
     # to use the model you need firefly
     def getDesc(self,url):
-        res = requests.get(url)
+        res = requests.get(url,verify=False)
         soup = bs4.BeautifulSoup(res.content, features="html.parser")
 
         try:
@@ -92,18 +107,15 @@ class MyServer(BaseHTTPRequestHandler):
             # print(translate_text)
         except:
             return (None)
-        try:
-            size = soup.find(class_='size_1bXM').get_text()
-            print(size)
-
-        except:
-            return (None)
-        descsizelist = []
-        descsizelist.append((desclist[0]))
-        descsizelist.append((size))
-        print(descsizelist)
-
-        return descsizelist
+        return desclist
+        #
+        # descsizelist = []
+        # descsizelist.append((desclist[0]))
+        # descsizelist.append((size))
+        # print(descsizelist)
+        #
+        # return descsizelist
+        # #return desclist[0]
 
 
 
@@ -122,14 +134,39 @@ class MyServer(BaseHTTPRequestHandler):
         if "getDesc" in self.path:
             myUrl = query_components['url'][0]
             desc=self.getDesc(myUrl)
+            print("1")
             print(desc)
+            print("2")
             json_content = json.dumps(desc, ensure_ascii=False)
+
+        if "startModel" in self.path:
+            print("hjkhmnkhbn")
+            senetences=["???????????"]
+            similarity=self.startModel('bert','angular',True,senetences)
+
         self.send_response(200)
         self.end_headers()
         #json_content = json.dumps(None, ensure_ascii=False)  # json.dumps(res)
         print(json_content)
         self.wfile.write(bytes(str(json_content), "utf-8"))
         return
+    #
+    def do_POST(self):
+        content_length = int(self.headers['Content-Length']) # <--- Gets the size of data
+        sentences = self.rfile.read(content_length) # <--- Gets the data itself
+        print(sentences)
+        self.send_response(200)
+        self.end_headers()
+        # self._set_response()
+        self.wfile.write("POST request for {}".format(self.path).encode('utf-8'))
+
+        # print("ppppooosst")
+        # self.parse_request()
+        # jsonstr = self.request.POST["Data"]
+        # print(jsonstr)
+        # self.send_response(200)
+        # self.end_headers()
+        # return
 
 # generate the server
 myServer = HTTPServer((hostName, hostPort), MyServer)
@@ -141,10 +178,3 @@ except KeyboardInterrupt:
 # stop the server
 myServer.server_close()
 print(time.asctime(), "Server Closed - %s:%s" % (hostName, hostPort))
-
-
-# Press the green button in the gutter to run the script.
-if __name__ == '__main__':
-    print_hi('PyCharm')
-
-# See PyCharm help at https://www.jetbrains.com/help/pycharm/
